@@ -14,4 +14,20 @@
   "bin": {
     "id3-writer": "./bin/id3-writer"
   },
+  "homepage": "https://github.com/Jack12816/id3-writer-cli",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Jack12816/id3-writer-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/Jack12816/id3-writer-cli/issues"
+  },
+  "keywords": [
+    "id3",
+    "writer",
+    "id3lib",
+    "eyeD3",
+    "id3-writer",
+    "writer"
+  ]
 }
