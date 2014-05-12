@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+
+/**
+ * ID3 Writer CLI binary
+ *
+ * @author Hermann Mayer <hermann.mayer92@gmail.com>
+ */
+
+// Load all necessary modules
+var Directory = require('../lib/directory');
+var Path = require('../lib/path');
+var File = require('../lib/file');
+var extend = require('extend');
+
+var getopt = require('node-getopt').create([
+    ['r', 'remove-tags', 'Remove tags'],
+    ['w', 'write-tags', 'Write new tags\n'],
+
+    ['p', 'print-meta', 'Print out the meta information\n'],
+
+    ['c', 'compilation', 'Path structure is like Compilation/Volume'],
+    ['a', 'artist-album', 'Path structure is like Artist/Album'],
+    ['y', 'artist-year-album', 'Path structure is like Artist/Year - Album\n'],
+
+    ['C', 'file-compilation', 'File structure is like Position - Artist - Title'],
+    ['t', 'position-track', 'File structure is like Position - Title\n'],
+
+    ['h', 'help', 'Display this help'],
+    ['v', 'version', 'Show version']
+]);
+
+getopt.setHelp(
+  "Usage: id3-writer [OPTION]\n" +
+  "\n" +
+  "[[OPTIONS]]\n" +
+  "\n" +
+  "Installation: npm install -g id3-writer-cli\n" +
+  "Respository:  https://github.com/Jack12816/id3-writer-cli"
+);
+
+// Parse the given process args
+var opts = getopt.parseSystem();
+
+// Run the selected command
+(function() {
+
+    // Without args print the help
+    if (0 === Object.keys(opts.options).length ||
+        opts.options.hasOwnProperty('help')) {
+        getopt.showHelp();
+        return;
+    }
+
+    // Default settings
+    var pathMode = 'ArtistYearAlbum';
+    var fileMode = 'PosTrack';
+
+    if (opts.options.hasOwnProperty('compilation')) {
+        var pathMode = 'Compilation';
+        var fileMode = 'Compilation';
+    }
+
+    if (opts.options.hasOwnProperty('artist-album')) {
+        var pathMode = 'ArtistAlbum';
+        var fileMode = 'PosTrack';
+    }
+
+    if (opts.options.hasOwnProperty('artist-year-album')) {
+        var pathMode = 'ArtistYearAlbum';
+        var fileMode = 'PosTrack';
+    }
+
+    if (opts.options.hasOwnProperty('file-compilation')) {
+        var fileMode = 'Compilation';
+    }
+
+    if (opts.options.hasOwnProperty('position-track')) {
+        var fileMode = 'PosTrack';
+    }
+
+    // Find the root meta information
+    {
+        var curPath = new Path(process.cwd(), {
+            mode: pathMode
+        });
+
+        var rootMeta = curPath.parse();
+    }
+
+    // Walk through all files and find their meta information
+    {
+        var curDir = new Directory(process.cwd());
+        var files = curDir.getFiles(/\.mp3/);
+        var fileParser = new File({
+            mode: fileMode
+        });
+
+        var songs = files.map(function(file) {
+
+            var result = {
+                file: file
+            };
+
+            return extend(
+                true, {},
+                result, rootMeta, fileParser.parse(file)
+            );
+        });
+    }
+
+    if (opts.options.hasOwnProperty('remove-tags')) {
+        console.log('Not implemented yet.');
+    }
+
+    if (opts.options.hasOwnProperty('write-tags')) {
+        console.log('Not implemented yet.');
+    }
+
+    if (opts.options.hasOwnProperty('version')) {
+        console.log('Not implemented yet.');
+        process.exit(0);
+    }
+
+    if (opts.options.hasOwnProperty('print-meta')) {
+        console.log(JSON.stringify(songs, null, 4));
+    }
+
+}());
+
